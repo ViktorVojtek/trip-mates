@@ -1,6 +1,6 @@
 # Trip Mates — Remaining Work
 
-_Last verified: 2026-06-10. Always check actual files before acting on this list — verify before you trust._
+_Last verified: 2026-06-12. Always check actual files before acting on this list — verify before you trust._
 
 ---
 
@@ -51,92 +51,71 @@ _Last verified: 2026-06-10. Always check actual files before acting on this list
 
 ---
 
-### 2. Frontend Feature Gaps
+### 2. Frontend Feature Gaps — ✅ ALL COMPLETE
 
-#### 2a. Chat — Conversation List
-`/chat` shows "Select a conversation" with no list. Users have no way to find who to chat with.
-- [ ] Add `GET /api/messages` call on Chat page load (no userId param) to get all conversations for current user
-- [ ] Render a sidebar list of conversation partners with links to `/chat/:userId`
-- [ ] Add `GET /api/users/:id` to `client/src/services/api.ts` for fetching conversation partner names
+#### 2a. Chat — Conversation List ✅
+- [x] `GET /api/messages` called on Chat page load, sidebar conversation list implemented
+- [x] Conversations rendered with links to `/chat/:userId`
+- [x] `getUser(id)` in `client/src/services/api.ts` for fetching partner names
 
-#### 2b. Public User Profile Page
-No `/profile/:userId` route exists. TripDetail shows `createdById` but no link.
-- [ ] Create `client/src/pages/PublicProfile.tsx` — calls `GET /api/users/:id`, displays name, bio, familySize, travelPreferences, trips
-- [ ] Add route `/profile/:userId` to `client/src/App.tsx`
-- [ ] Link "Posted by" section in `client/src/pages/TripDetail.tsx` to `/profile/:createdById`
+#### 2b. Public User Profile Page ✅
+- [x] `client/src/pages/PublicProfile.tsx` — fetches user + trips, displays full profile
+- [x] Route `/profile/:userId` in `client/src/App.tsx`
+- [x] "Posted by" link in `client/src/pages/TripDetail.tsx` → `/profile/:createdById`
 
-#### 2c. AvailabilityCalendar Integration
-`AvailabilityCalendar` component is built but unused. `ProfileForm` uses a plain text input for availability instead.
-- [ ] Replace the plain text availability input in `client/src/components/ProfileForm.tsx` with `<AvailabilityCalendar />`
-- [ ] Wire selected dates to react-hook-form field as comma-separated ISO date strings
+#### 2c. AvailabilityCalendar Integration ✅
+- [x] `<AvailabilityCalendar />` used in `ProfileForm.tsx` via `Controller`
+- [x] Wired to react-hook-form `availability` field as comma-separated ISO date strings
 
-#### 2d. Landing Page — Featured Trips
-- [ ] Add a featured trips section to `client/src/pages/Landing.tsx` — call `GET /api/trips?pageSize=3` (unauthenticated), render with `TripCard`
+#### 2d. Landing Page — Featured Trips ✅
+- [x] Featured trips section in `client/src/pages/Landing.tsx` — calls `GET /api/trips?pageSize=3`
 
-#### 2e. Profile Picture Upload
-Use URL input as the simplest no-infrastructure strategy.
-- [ ] Add a URL text input for `profilePicture` to `client/src/components/ProfileForm.tsx`
-- [ ] Wire it to the `updateProfile` API call
+#### 2e. Profile Picture Upload ✅
+- [x] URL input for `profilePicture` in `client/src/components/ProfileForm.tsx`
+- [x] Wired to `updateProfile` API call
 
 ---
 
-### 3. Client Tests — ✅ COMPLETE (71/71 tests passing)
+### 3. Client Tests — ✅ COMPLETE (124/124 tests passing)
 
-- [x] `@testing-library/user-event@^14.5.2` installed
-- [x] `src/api/client.test.ts` — 4 tests, all passing ✅
-- [x] `src/services/auth.test.ts` — 8 tests, all passing ✅
-- [x] `src/components/ChatBubble.test.tsx` — 4 tests, all passing ✅
-- [x] `src/components/FilterBar.test.tsx` — 7 tests, all passing ✅
-- [x] `src/components/AvailabilityCalendar.test.tsx` — 6 tests, all passing ✅
-- [x] `src/components/MatchScore.test.tsx` — 6 tests, all passing ✅
-- [x] **Helper & Resolver tests** — 20 tests, all passing ✅
-- [x] Other component tests (TripCard, ProfileForm, TripForm, etc.) — need to be written
-
-**Still needed:**
-- `src/services/api.test.ts` — ~8 tests for API service layer
-- `src/components/TripCard.test.tsx` — ~9 tests
-- `src/components/ProfileForm.test.tsx` — ~6 tests  
-- `src/components/TripForm.test.tsx` — ~6 tests
-- Context & page tests (AuthContext, Login, Signup, Dashboard, TripDetail, PostTrip, Profile) — ~29 tests
+- [x] `src/api/client.test.ts` — 4 tests ✅
+- [x] `src/services/auth.test.ts` — 8 tests ✅
+- [x] `src/services/api.test.ts` — 9 tests ✅
+- [x] `src/utils/helpers.test.ts` — 15 tests ✅
+- [x] `src/utils/zodResolver.test.ts` — 5 tests ✅
+- [x] `src/components/ChatBubble.test.tsx` — 4 tests ✅
+- [x] `src/components/FilterBar.test.tsx` — 7 tests ✅
+- [x] `src/components/AvailabilityCalendar.test.tsx` — 6 tests ✅
+- [x] `src/components/MatchScore.test.tsx` — 6 tests ✅
+- [x] `src/components/TripCard.test.tsx` — 7 tests ✅
+- [x] `src/components/ProfileForm.test.tsx` — 6 tests ✅
+- [x] `src/components/TripForm.test.tsx` — 5 tests ✅
+- [x] `src/context/AuthContext.test.tsx` — 6 tests ✅
+- [x] `src/pages/Login.test.tsx` — 5 tests ✅
+- [x] `src/pages/Signup.test.tsx` — 4 tests ✅
+- [x] `src/pages/Dashboard.test.tsx` — 7 tests ✅
+- [x] `src/pages/Profile.test.tsx` — 8 tests ✅
+- [x] `src/pages/PostTrip.test.tsx` — 3 tests ✅
+- [x] `src/pages/TripDetail.test.tsx` — 8 tests ✅
 
 ---
 
-### 4. Server Tests (not set up yet)
+### 4. Server Tests — ✅ COMPLETE (34/34 tests passing)
 
-**Install and configure first:**
-```bash
-cd /Users/dexter/Projects/trip-mates/server && npm install --save-dev vitest@^1.6.0 supertest@^7.0.0 @types/supertest@^6.0.0
-```
-
-**Create `server/vitest.config.ts`:**
-```ts
-import { defineConfig } from 'vitest/config';
-export default defineConfig({
-  test: { environment: 'node', globals: true },
-});
-```
-
-**Add to `server/package.json` scripts:**
-```json
-"test": "vitest run"
-```
-
-#### Test Files
-| File | Tests | Notes |
-|------|-------|-------|
-| `server/src/utils/helpers.test.ts` | ~6 | Test `paginate()` — page 1, last page, empty, out-of-range |
-| `server/src/middleware/auth.test.ts` | ~5 | Use real `jwt.sign`; test missing/invalid/valid token |
-| `server/src/middleware/errorHandler.test.ts` | ~3 | Test status code and message passthrough |
-| `server/src/controllers/authController.test.ts` | ~8 | Mock prisma; test register/login/getProfile/updateProfile |
-| `server/src/routes/auth.test.ts` | ~8 | Supertest integration; test full request/response cycle |
+- [x] `server/vitest.config.ts` — configured ✅
+- [x] `server/src/utils/helpers.test.ts` — 6 tests ✅
+- [x] `server/src/middleware/auth.test.ts` — 5 tests ✅
+- [x] `server/src/middleware/errorHandler.test.ts` — 3 tests ✅
+- [x] `server/src/controllers/authController.test.ts` — 10 tests ✅
+- [x] `server/src/routes/auth.test.ts` — 10 tests ✅
 
 ---
 
 ## Recommended Order
 
-1. ~~Backend API Routes~~ — done
-2. ~~Budget field~~ — done
-3. **Frontend gaps** (2a → 2b → 2c → 2d → 2e) — no blockers
-4. **Client tests** — install user-event, then write service → component → context/page tests
-5. **Server tests** — install vitest + supertest, create config, write test files
+1. ~~Backend API Routes~~ — done ✅
+2. ~~Budget field~~ — done ✅
+3. ~~Frontend gaps (2a → 2b → 2c → 2d → 2e)~~ — done ✅
+4. ~~Client tests~~ — 124/124 passing ✅
+5. ~~Server tests~~ — 34/34 passing ✅
 6. **Environment setup** — BLOCKED until user provides DATABASE_URL and JWT_SECRET
