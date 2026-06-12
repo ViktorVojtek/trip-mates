@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# secrets / env — never commit
+.env
+*.env
+!.env.example
+**/.env
+**/.env.local
+
+# build output
+dist/
+build/
+client/dist/
+server/dist/
+
+# logs & os
+*.log
+.DS_Store
+
+# test / coverage
+coverage/
+.vitest/
+
+# prisma local db artifacts
+*.sqlite
+*.sqlite-journal
