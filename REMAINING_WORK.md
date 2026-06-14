@@ -76,7 +76,7 @@ _Last verified: 2026-06-12. Always check actual files before acting on this list
 
 ---
 
-### 3. Client Tests — ✅ COMPLETE (124/124 tests passing)
+### 3. Client Tests — ✅ COMPLETE (161/161 tests passing)
 
 - [x] `src/api/client.test.ts` — 4 tests ✅
 - [x] `src/services/auth.test.ts` — 8 tests ✅
@@ -90,6 +90,7 @@ _Last verified: 2026-06-12. Always check actual files before acting on this list
 - [x] `src/components/TripCard.test.tsx` — 7 tests ✅
 - [x] `src/components/ProfileForm.test.tsx` — 6 tests ✅
 - [x] `src/components/TripForm.test.tsx` — 5 tests ✅
+- [x] `src/components/Navbar.test.tsx` — 8 tests ✅
 - [x] `src/context/AuthContext.test.tsx` — 6 tests ✅
 - [x] `src/pages/Login.test.tsx` — 5 tests ✅
 - [x] `src/pages/Signup.test.tsx` — 4 tests ✅
@@ -97,6 +98,9 @@ _Last verified: 2026-06-12. Always check actual files before acting on this list
 - [x] `src/pages/Profile.test.tsx` — 8 tests ✅
 - [x] `src/pages/PostTrip.test.tsx` — 3 tests ✅
 - [x] `src/pages/TripDetail.test.tsx` — 8 tests ✅
+- [x] `src/pages/Landing.test.tsx` — 9 tests ✅
+- [x] `src/pages/Chat.test.tsx` — 9 tests ✅
+- [x] `src/pages/PublicProfile.test.tsx` — 9 tests ✅
 
 ---
 
