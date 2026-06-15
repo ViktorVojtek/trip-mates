@@ -104,14 +104,20 @@ _Last verified: 2026-06-12. Always check actual files before acting on this list
 
 ---
 
-### 4. Server Tests — ✅ COMPLETE (34/34 tests passing)
+### 4. Server Tests — ✅ COMPLETE (74/74 tests passing)
 
 - [x] `server/vitest.config.ts` — configured ✅
 - [x] `server/src/utils/helpers.test.ts` — 6 tests ✅
 - [x] `server/src/middleware/auth.test.ts` — 5 tests ✅
 - [x] `server/src/middleware/errorHandler.test.ts` — 3 tests ✅
 - [x] `server/src/controllers/authController.test.ts` — 10 tests ✅
+- [x] `server/src/controllers/tripController.test.ts` — 13 tests ✅
+- [x] `server/src/controllers/messageController.test.ts` — 7 tests ✅
+- [x] `server/src/controllers/userController.test.ts` — 3 tests ✅
 - [x] `server/src/routes/auth.test.ts` — 10 tests ✅
+- [x] `server/src/routes/trips.test.ts` — 9 tests ✅
+- [x] `server/src/routes/messages.test.ts` — 5 tests ✅
+- [x] `server/src/routes/users.test.ts` — 3 tests ✅
 
 ---
 
@@ -121,5 +127,5 @@ _Last verified: 2026-06-12. Always check actual files before acting on this list
 2. ~~Budget field~~ — done ✅
 3. ~~Frontend gaps (2a → 2b → 2c → 2d → 2e)~~ — done ✅
 4. ~~Client tests~~ — 124/124 passing ✅
-5. ~~Server tests~~ — 34/34 passing ✅
+5. ~~Server tests~~ — 74/74 passing ✅
 6. **Environment setup** — BLOCKED until user provides DATABASE_URL and JWT_SECRET
