@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
 import type { RegisterFormData } from '../types';
 import { createZodResolver } from '../utils/zodResolver';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 const signupSchema = z
   .object({
@@ -139,6 +140,7 @@ export default function Signup() {
             {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
+        <GoogleAuthButton />
         <p className="text-center text-gray-600 mt-5 text-sm">
           Already have an account?{' '}
           <Link to="/login" className="text-blue-600 hover:underline font-medium">

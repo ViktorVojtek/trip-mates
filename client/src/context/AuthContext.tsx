@@ -16,6 +16,7 @@ type AuthAction =
 
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -62,6 +63,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_USER', payload: { user, token } });
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    const { user, token } = await authService.googleLogin(credential);
+    authService.setAuth(token);
+    dispatch({ type: 'SET_USER', payload: { user, token } });
+  };
+
   const register = async (data: RegisterData) => {
     const { user, token } = await authService.register(data);
     authService.setAuth(token);
@@ -79,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ ...state, login, loginWithGoogle, register, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,6 +8,7 @@ vi.mock('../config/db.js', () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      upsert: vi.fn(),
     },
   },
 }));
@@ -26,6 +27,11 @@ vi.mock('jsonwebtoken', () => ({
   },
 }));
 
+const { verifyIdToken } = vi.hoisted(() => ({ verifyIdToken: vi.fn() }));
+vi.mock('google-auth-library', () => ({
+  OAuth2Client: vi.fn(() => ({ verifyIdToken })),
+}));
+
 import prisma from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -37,6 +43,7 @@ const prismaMock = prisma as unknown as {
     findUnique: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -115,6 +122,30 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(200);
     expect(res.body.token).toBe('tok');
     expect(res.body.user.email).toBe('a@b.com');
+  });
+});
+
+describe('POST /api/auth/google', () => {
+  it('returns 400 when credential is missing', async () => {
+    const res = await request(app).post('/api/auth/google').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 200 with user and token for a valid credential', async () => {
+    verifyIdToken.mockResolvedValue({
+      getPayload: () => ({ email: 'g@b.com', name: 'Gina' }),
+    });
+    prismaMock.user.upsert.mockResolvedValue({
+      id: 'u9', email: 'g@b.com', name: 'Gina', familySize: 1, childrenAges: null,
+      createdAt: new Date().toISOString(),
+    });
+    vi.mocked(jwt.sign).mockReturnValue('tok' as never);
+
+    const res = await request(app).post('/api/auth/google').send({ credential: 'id-token' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBe('tok');
+    expect(res.body.user.email).toBe('g@b.com');
   });
 });
 

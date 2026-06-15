@@ -7,6 +7,7 @@ vi.mock('../config/db.js', () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      upsert: vi.fn(),
     },
   },
 }));
@@ -24,16 +25,22 @@ vi.mock('jsonwebtoken', () => ({
   },
 }));
 
+const { verifyIdToken } = vi.hoisted(() => ({ verifyIdToken: vi.fn() }));
+vi.mock('google-auth-library', () => ({
+  OAuth2Client: vi.fn(() => ({ verifyIdToken })),
+}));
+
 import prisma from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { register, login, getProfile, updateProfile } from './authController.js';
+import { register, login, getProfile, updateProfile, googleAuth } from './authController.js';
 
 const prismaMock = prisma as unknown as {
   user: {
     findUnique: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -182,5 +189,62 @@ describe('updateProfile()', () => {
     await updateProfile(req, res, next);
 
     expect(next).toHaveBeenCalledWith(dbError);
+  });
+});
+
+describe('googleAuth()', () => {
+  it('returns 400 when the credential is missing', async () => {
+    const req = { body: {} } as Request;
+    const res = makeRes();
+
+    await googleAuth(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Missing Google credential' });
+  });
+
+  it('returns 401 when the verified token has no email', async () => {
+    verifyIdToken.mockResolvedValue({ getPayload: () => ({}) });
+
+    const req = { body: { credential: 'tok' } } as Request;
+    const res = makeRes();
+
+    await googleAuth(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid Google token' });
+  });
+
+  it('upserts the user and returns an app token on a valid credential', async () => {
+    verifyIdToken.mockResolvedValue({
+      getPayload: () => ({ email: 'g@b.com', name: 'Gina', picture: 'p.png' }),
+    });
+    const upserted = {
+      id: 'u9', email: 'g@b.com', name: 'Gina', familySize: 1, childrenAges: null, createdAt: new Date(),
+    };
+    prismaMock.user.upsert.mockResolvedValue(upserted);
+    vi.mocked(jwt.sign).mockReturnValue('signed-token' as never);
+
+    const req = { body: { credential: 'tok' } } as Request;
+    const res = makeRes();
+
+    await googleAuth(req, res, next);
+
+    expect(prismaMock.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { email: 'g@b.com' } })
+    );
+    expect(res.json).toHaveBeenCalledWith({ user: upserted, token: 'signed-token' });
+  });
+
+  it('calls next(err) when verification throws', async () => {
+    const err = new Error('bad token');
+    verifyIdToken.mockRejectedValue(err);
+
+    const req = { body: { credential: 'tok' } } as Request;
+    const res = makeRes();
+
+    await googleAuth(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(err);
   });
 });

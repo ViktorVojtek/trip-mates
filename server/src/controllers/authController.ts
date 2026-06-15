@@ -1,8 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import type { Request, Response, NextFunction } from 'express';
 import prisma from '../config/db.js';
 import type { RegisterRequestBody, LoginRequestBody, UpdateProfileRequestBody } from '../types/index.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const register = async (
   req: Request<{}, {}, RegisterRequestBody>,
@@ -153,4 +156,54 @@ const updateProfile = async (
   }
 };
 
-export { register, login, getProfile, updateProfile };
+const googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { credential } = req.body as { credential?: string };
+    if (!credential) {
+      res.status(400).json({ message: 'Missing Google credential' });
+      return;
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.email) {
+      res.status(401).json({ message: 'Invalid Google token' });
+      return;
+    }
+
+    // Upsert by email: first Google sign-in creates the account, later ones reuse it.
+    const user = await prisma.user.upsert({
+      where: { email: payload.email },
+      update: {},
+      create: {
+        email: payload.email,
+        password: '', // OAuth account — no local password
+        name: payload.name ?? payload.email.split('@')[0],
+        profilePicture: payload.picture ?? null,
+        familySize: 1,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        familySize: true,
+        childrenAges: true,
+        createdAt: true,
+      },
+    });
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, {
+      expiresIn: '7d',
+    });
+
+    res.json({ user, token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { register, login, getProfile, updateProfile, googleAuth };

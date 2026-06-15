@@ -71,6 +71,13 @@ describe('services/auth', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/auth/profile');
   });
 
+  it('googleLogin posts the credential to /auth/google', async () => {
+    const mockData = { user: { id: '1' }, token: 't' };
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockData });
+    await authService.googleLogin('cred-123');
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/google', { credential: 'cred-123' });
+  });
+
   it('updateProfile calls correct endpoint with data', async () => {
     const mockData = { id: '1' };
     vi.mocked(apiClient.put).mockResolvedValueOnce({ data: mockData });
