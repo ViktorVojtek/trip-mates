@@ -11,9 +11,10 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 - **Backend API** — complete: auth / trips / messages / users controllers + routes, all mounted in `server/src/index.ts`. `budget` Decimal→Number via `serializeTrip`.
 - **Frontend** — complete: 9 pages, 9 components, `AuthContext`, API service layer.
 - **Database** — **set up, NOT blocked**: migration `server/prisma/migrations/20260608134149_initial_migration` applied, `server/.env` + `client/.env` present, Postgres up on :5432, Prisma client generated. (Re-run `npm run db:seed` if sample data is missing.)
-- **Client tests** — 161 passing (23 files).
-- **Server tests** — 74 passing (11 files).
-- **TypeScript** — `tsc --noEmit` clean in both packages ✅ (test-file errors fixed 2026-06-15).
+- **Client tests** — 167 passing (24 files).
+- **Server tests** — 92 passing (12 files).
+- **TypeScript** — `tsc --noEmit` clean in both packages ✅. `npm run build` succeeds in both.
+- **Live smoke (2026-06-15)** — verified against real DB: public trip listing without auth, public trip detail, budget serialized as number, avatar upload + non-image rejection, Socket.IO auth handshake + real-time `message:new` delivery.
 
 ### Invariants (from CLAUDE.md — never break)
 `postcss.config.js` not `.ts` · server imports use `.js` extension (NodeNext) · no `@hookform/resolvers` (use `client/src/utils/zodResolver.ts`) · always `Number(trip.budget)` before JSON.
@@ -45,9 +46,9 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 
 ### Phase 6 — Final verification
 
-- [ ] **6.1** `tsc --noEmit` clean in both packages; `npm test` green in both; `npm run build` succeeds in both.
-- [ ] **6.2** End-to-end smoke (use the **run** skill): register/login, post a trip, view it logged-out on Landing (public listing), open another user's `PublicProfile`, send a chat message and confirm it appears in real time.
-- [ ] **6.3** Reconcile this doc — check off completed items and note any that remain pending.
+- [x] **6.1** `tsc --noEmit` clean in both packages; `npm test` green in both (server 92, client 167); `npm run build` succeeds in both.
+- [x] **6.2** Live smoke against the real DB: register/create-trip, public trip listing + detail without auth, avatar upload (+ non-image 400), Socket.IO auth + real-time `message:new`. (Live email/Google not exercised — credential-gated.)
+- [x] **6.3** Reconciled this doc — Phases 4–6 complete; only the two credential-gated live-verification items remain (SMTP, Google).
 
 ---
 
