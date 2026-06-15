@@ -26,7 +26,7 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 
 - [x] **4.1 Public trip listing** — remove the auth middleware from `GET /api/trips` and `GET /api/trips/:id` in `server/src/routes/trips.ts` so logged-out visitors can browse; keep `POST /`, `POST /:id/interest`, `GET /:id/interests` auth-gated. Update `server/src/routes/trips.test.ts` to assert both GETs are reachable without a token. (Fixes Landing showing "No trips posted yet" to visitors.)
 - [x] **4.2 `createdById` filter** — in `tripController.getTrips`, read `req.query.createdById` and add `if (createdById) where['createdById'] = createdById as string;`. Then remove the client-side re-filter workaround in `client/src/pages/PublicProfile.tsx`. Add a controller test for the filter.
-- [ ] **4.3 AvailabilityCalendar sync** — in `client/src/components/AvailabilityCalendar.tsx` add `useEffect(() => setSelected(new Set(value)), [value])` so it re-syncs when the parent `value` prop changes. Add a test for prop-change re-render.
+- [x] **4.3 AvailabilityCalendar sync** — in `client/src/components/AvailabilityCalendar.tsx` add `useEffect(() => setSelected(new Set(value)), [value])` so it re-syncs when the parent `value` prop changes. Add a test for prop-change re-render.
 - [ ] **4.4 Chat list staleness** — refetch conversations after sending a message in `client/src/pages/Chat.tsx`. Mark done-by-5a if Socket.IO lands first.
 
 ### Phase 5 — PRD non-goal features (full scope)

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AvailabilityCalendarProps {
   value?: string[];
@@ -13,6 +13,11 @@ export default function AvailabilityCalendar({
 }: AvailabilityCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selected, setSelected] = useState<Set<string>>(new Set(value));
+
+  // Re-sync when the parent provides a different value (e.g. async profile load).
+  // Keyed on the joined content so a new-but-equal array reference doesn't clobber edits.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setSelected(new Set(value)), [value.join(',')]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

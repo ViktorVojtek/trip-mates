@@ -59,3 +59,18 @@ it('navigates to previous month', () => {
   const prevBtn = screen.getAllByRole('button').find((el) => el.textContent === '‹');
   expect(prevBtn).toBeDefined();
 });
+
+it('re-syncs selection when the value prop changes', () => {
+  const { rerender } = render(<AvailabilityCalendar value={[]} />);
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dateStr = `${now.getFullYear()}-${mm}-15`;
+
+  const before = screen.getAllByRole('button').find((el) => el.textContent === '15');
+  expect(before?.className).not.toContain('bg-blue-600');
+
+  rerender(<AvailabilityCalendar value={[dateStr]} />);
+
+  const after = screen.getAllByRole('button').find((el) => el.textContent === '15');
+  expect(after?.className).toContain('bg-blue-600');
+});
