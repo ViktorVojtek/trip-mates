@@ -4,6 +4,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import { uploadsDir } from './middleware/upload.js';
 import authRoutes from './routes/auth.js';
 import tripRoutes from './routes/trips.js';
 import messageRoutes from './routes/messages.js';
@@ -15,6 +16,9 @@ const PORT = process.env.PORT ?? 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded avatars.
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

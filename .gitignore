@@ -25,3 +25,7 @@ coverage/
 # prisma local db artifacts
 *.sqlite
 *.sqlite-journal
+
+# uploaded avatars (keep the dir, ignore contents)
+server/uploads/*
+!server/uploads/.gitkeep

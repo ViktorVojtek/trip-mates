@@ -8,6 +8,12 @@ vi.mock('../services/auth', () => ({
   updateProfile: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock('../services/api', () => ({
+  uploadAvatar: vi
+    .fn()
+    .mockResolvedValue({ id: 'u1', name: 'Alice', profilePicture: '/uploads/avatar-u1-1.png' }),
+}));
+
 vi.mock('./AvailabilityCalendar', () => ({
   default: ({ onChange }: { value: string[]; onChange: (d: string[]) => void }) => (
     <div data-testid="availability-calendar">
@@ -82,5 +88,20 @@ describe('ProfileForm', () => {
   it('renders Save Changes button', () => {
     render(<ProfileForm user={makeUser()} onSave={onSave} />);
     expect(screen.getByRole('button', { name: /save changes/i })).toBeDefined();
+  });
+
+  it('uploads a selected image and fills the profile picture field', async () => {
+    const { uploadAvatar } = await import('../services/api');
+    const user = userEvent.setup();
+    render(<ProfileForm user={makeUser()} onSave={onSave} />);
+
+    const file = new File(['x'], 'avatar.png', { type: 'image/png' });
+    const input = screen.getByLabelText(/Upload profile picture/i);
+    await user.upload(input, file);
+
+    await waitFor(() => {
+      expect(uploadAvatar).toHaveBeenCalledWith(file);
+      expect(screen.getByDisplayValue('/uploads/avatar-u1-1.png')).toBeDefined();
+    });
   });
 });

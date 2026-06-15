@@ -44,3 +44,12 @@ export const getUser = async (id: string): Promise<User> => {
   const response = await apiClient.get<User>(`/users/${id}`);
   return response.data;
 };
+
+export const uploadAvatar = async (file: File): Promise<User> => {
+  const form = new FormData();
+  form.append('avatar', file);
+  const response = await apiClient.post<User>('/users/me/avatar', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};

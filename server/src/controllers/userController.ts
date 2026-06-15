@@ -32,3 +32,27 @@ export const getUserProfile = async (
     next(err);
   }
 };
+
+export const uploadAvatar = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ message: 'No file uploaded' });
+      return;
+    }
+
+    const profilePicture = `/uploads/${req.file.filename}`;
+    const user = await prisma.user.update({
+      where: { id: req.userId! },
+      data: { profilePicture },
+      select: { id: true, name: true, profilePicture: true },
+    });
+
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+};

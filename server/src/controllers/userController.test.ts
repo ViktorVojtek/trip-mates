@@ -5,16 +5,18 @@ vi.mock('../config/db.js', () => ({
   default: {
     user: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
 
 import prisma from '../config/db.js';
-import { getUserProfile } from './userController.js';
+import { getUserProfile, uploadAvatar } from './userController.js';
 
 const prismaMock = prisma as unknown as {
   user: {
     findUnique: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -81,5 +83,35 @@ describe('getUserProfile()', () => {
     await getUserProfile(req, res, next);
 
     expect(next).toHaveBeenCalledWith(err);
+  });
+});
+
+describe('uploadAvatar()', () => {
+  it('saves the uploaded file path to the user and returns the updated user', async () => {
+    const updated = { id: 'u1', name: 'Alice', profilePicture: '/uploads/avatar-u1-123.png' };
+    prismaMock.user.update.mockResolvedValue(updated);
+
+    const req = makeReq({
+      file: { filename: 'avatar-u1-123.png' } as Express.Multer.File,
+    });
+    const res = makeRes();
+    await uploadAvatar(req, res, next);
+
+    expect(prismaMock.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'u1' },
+        data: { profilePicture: '/uploads/avatar-u1-123.png' },
+      })
+    );
+    expect(res.json).toHaveBeenCalledWith(updated);
+  });
+
+  it('returns 400 when no file was uploaded', async () => {
+    const req = makeReq();
+    const res = makeRes();
+    await uploadAvatar(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'No file uploaded' });
   });
 });

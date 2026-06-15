@@ -80,3 +80,25 @@ describe('GET /api/users/:id', () => {
     expect(res.body).toEqual({ message: 'User not found' });
   });
 });
+
+describe('POST /api/users/me/avatar', () => {
+  it('returns 401 without a token', async () => {
+    const res = await request(app)
+      .post('/api/users/me/avatar')
+      .attach('avatar', Buffer.from('img'), { filename: 'a.png', contentType: 'image/png' });
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects a non-image file with 400', async () => {
+    const res = await request(app)
+      .post('/api/users/me/avatar')
+      .set('Authorization', 'Bearer valid-token')
+      .attach('avatar', Buffer.from('not an image'), {
+        filename: 'note.txt',
+        contentType: 'text/plain',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/image/i);
+  });
+});

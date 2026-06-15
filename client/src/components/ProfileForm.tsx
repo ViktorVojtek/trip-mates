@@ -1,6 +1,8 @@
+import { useState, type ChangeEvent } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { updateProfile } from '../services/auth';
+import { uploadAvatar } from '../services/api';
 import type { User, UpdateProfileFormData } from '../types';
 import { createZodResolver } from '../utils/zodResolver';
 import AvailabilityCalendar from '../components/AvailabilityCalendar';
@@ -25,6 +27,7 @@ export default function ProfileForm({ user, onSave }: ProfileFormProps) {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<UpdateProfileFormData>({
     resolver: createZodResolver(profileSchema),
@@ -38,6 +41,26 @@ export default function ProfileForm({ user, onSave }: ProfileFormProps) {
       profilePicture: user.profilePicture ?? '',
     },
   });
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const updated = await uploadAvatar(file);
+      if (updated.profilePicture) {
+        setValue('profilePicture', updated.profilePicture, { shouldDirty: true });
+      }
+    } catch {
+      setUploadError('Upload failed. Please try a different image.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onSubmit = async (data: UpdateProfileFormData) => {
     await updateProfile(data);
@@ -68,6 +91,19 @@ export default function ProfileForm({ user, onSave }: ProfileFormProps) {
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           placeholder="https://example.com/photo.jpg"
         />
+        <div className="mt-2">
+          <label className="block text-xs text-gray-500 mb-1">…or upload an image</label>
+          <input
+            type="file"
+            accept="image/*"
+            aria-label="Upload profile picture"
+            onChange={(e) => void handleFile(e)}
+            disabled={uploading}
+            className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          {uploading && <p className="text-xs text-gray-400 mt-1">Uploading…</p>}
+          {uploadError && <p className="text-red-500 text-xs mt-1">{uploadError}</p>}
+        </div>
       </div>
 
       <div>
