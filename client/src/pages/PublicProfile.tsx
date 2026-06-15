@@ -21,7 +21,7 @@ export default function PublicProfile() {
     ])
       .then(([user, result]) => {
         setProfileUser(user);
-        setTrips(result.results.filter((t) => t.createdById === userId));
+        setTrips(result.results);
       })
       .catch(() => setError('User not found.'))
       .finally(() => setLoading(false));

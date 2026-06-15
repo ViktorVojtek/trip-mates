@@ -10,9 +10,11 @@ import auth from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/', auth, getTrips);
+// Public discovery: visitors can browse trips before signing up.
+router.get('/', getTrips);
+router.get('/:id', getTripById);
+// Mutations and interest data stay authenticated.
 router.post('/', auth, createTrip);
-router.get('/:id', auth, getTripById);
 router.post('/:id/interest', auth, expressInterest);
 router.get('/:id/interests', auth, getTripInterests);
 

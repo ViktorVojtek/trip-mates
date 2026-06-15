@@ -101,6 +101,19 @@ describe('getTrips()', () => {
     );
   });
 
+  it('passes createdById filter to prisma', async () => {
+    prismaMock.trip.findMany.mockResolvedValue([]);
+    prismaMock.trip.count.mockResolvedValue(0);
+
+    const req = makeReq({ query: { createdById: 'u1' } });
+    const res = makeRes();
+    await getTrips(req, res, next);
+
+    expect(prismaMock.trip.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ createdById: 'u1' }) })
+    );
+  });
+
   it('calls next(err) on prisma error', async () => {
     const err = new Error('db fail');
     prismaMock.trip.findMany.mockRejectedValue(err);

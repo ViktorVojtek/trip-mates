@@ -69,12 +69,19 @@ beforeEach(() => {
 });
 
 describe('GET /api/trips', () => {
-  it('returns 401 without a token', async () => {
+  it('is publicly accessible without a token', async () => {
+    prismaMock.trip.findMany.mockResolvedValue([tripRow]);
+    prismaMock.trip.count.mockResolvedValue(1);
+
     const res = await request(app).get('/api/trips');
-    expect(res.status).toBe(401);
+
+    expect(res.status).toBe(200);
+    expect(res.body.results).toHaveLength(1);
+    expect(res.body.results[0].id).toBe('t1');
+    expect(res.body.meta.totalItems).toBe(1);
   });
 
-  it('returns paginated trips for authenticated user', async () => {
+  it('also serves authenticated requests', async () => {
     prismaMock.trip.findMany.mockResolvedValue([tripRow]);
     prismaMock.trip.count.mockResolvedValue(1);
 
@@ -84,8 +91,6 @@ describe('GET /api/trips', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.results).toHaveLength(1);
-    expect(res.body.results[0].id).toBe('t1');
-    expect(res.body.meta.totalItems).toBe(1);
   });
 });
 
@@ -101,12 +106,10 @@ describe('GET /api/trips/:id', () => {
     expect(res.body).toEqual({ message: 'Trip not found' });
   });
 
-  it('returns the trip when found', async () => {
+  it('returns the trip when found (public, no token)', async () => {
     prismaMock.trip.findUnique.mockResolvedValue(tripRow);
 
-    const res = await request(app)
-      .get('/api/trips/t1')
-      .set('Authorization', 'Bearer valid-token');
+    const res = await request(app).get('/api/trips/t1');
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe('t1');

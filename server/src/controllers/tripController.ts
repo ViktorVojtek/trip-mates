@@ -24,7 +24,7 @@ const serializeTrip = (trip: { budget: { toString(): string } & object } & Recor
 
 export const getTrips = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { destination, groupType, startDate, endDate } = req.query;
+    const { destination, groupType, startDate, endDate, createdById } = req.query;
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize as string) || 10));
 
@@ -34,6 +34,7 @@ export const getTrips = async (req: Request, res: Response, next: NextFunction):
     if (groupType) where['groupType'] = groupType as string;
     if (startDate) where['startDate'] = { gte: new Date(startDate as string) };
     if (endDate) where['endDate'] = { lte: new Date(endDate as string) };
+    if (createdById) where['createdById'] = createdById as string;
 
     const [trips, totalItems] = await Promise.all([
       prisma.trip.findMany({
