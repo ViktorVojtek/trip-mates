@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import Chat from './Chat';
@@ -16,6 +16,14 @@ vi.mock('../services/api', () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   sendMessage: (...args: unknown[]) => mockSendMessage(...args),
   getUser: (...args: unknown[]) => mockGetUser(...args),
+}));
+
+// Capture the socket handler instead of opening a real connection.
+const socketRef = vi.hoisted(() => ({ handler: null as null | ((m: unknown) => void) }));
+vi.mock('../hooks/useSocket', () => ({
+  useSocket: (cb: (m: unknown) => void) => {
+    socketRef.handler = cb;
+  },
 }));
 
 vi.mock('../components/ChatBubble', () => ({
@@ -133,6 +141,20 @@ describe('Chat page', () => {
     await user.click(screen.getByRole('button', { name: /Send/i }));
     await waitFor(() => {
       expect(mockSendMessage).toHaveBeenCalledWith({ content: 'hello', receiverId: 'u2' });
+    });
+  });
+
+  it('appends an incoming socket message to the open conversation', async () => {
+    mockGetMessages.mockResolvedValue([]);
+    renderChat('u2');
+    await waitFor(() => screen.getByPlaceholderText(/Type a message/i));
+
+    act(() => {
+      socketRef.handler?.(makeMessage('7', 'u2', 'u1', 'live incoming'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('live incoming')).toBeDefined();
     });
   });
 

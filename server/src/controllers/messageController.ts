@@ -60,6 +60,14 @@ export const sendMessage = async (req: Request, res: Response, next: NextFunctio
       select: messageSelect,
     });
 
+    // Push the new message in real time to both participants' rooms.
+    // io is absent in unit tests / non-socket contexts — emit only when present.
+    const io = req.app?.get?.('io');
+    if (io) {
+      io.to(receiverId).emit('message:new', message);
+      if (senderId !== receiverId) io.to(senderId).emit('message:new', message);
+    }
+
     res.status(201).json(message);
   } catch (err) {
     next(err);

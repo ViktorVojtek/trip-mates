@@ -126,6 +126,31 @@ describe('sendMessage()', () => {
     );
   });
 
+  it('emits message:new to receiver and sender rooms when io is present', async () => {
+    prismaMock.message.create.mockResolvedValue(msgRow);
+    const emit = vi.fn();
+    const to = vi.fn(() => ({ emit }));
+    const io = { to };
+    const req = makeReq({
+      body: { content: 'Hello', receiverId: 'u2' },
+      app: { get: () => io } as unknown as Request['app'],
+    });
+    const res = makeRes();
+    await sendMessage(req, res, next);
+
+    expect(to).toHaveBeenCalledWith('u2');
+    expect(to).toHaveBeenCalledWith('u1');
+    expect(emit).toHaveBeenCalledWith('message:new', msgRow);
+  });
+
+  it('does not emit when io is absent', async () => {
+    prismaMock.message.create.mockResolvedValue(msgRow);
+    const req = makeReq({ body: { content: 'Hello', receiverId: 'u2' } });
+    const res = makeRes();
+    await sendMessage(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
   it('passes tripId as null when not provided', async () => {
     prismaMock.message.create.mockResolvedValue({ ...msgRow, tripId: null });
 

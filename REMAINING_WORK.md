@@ -27,13 +27,13 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 - [x] **4.1 Public trip listing** — remove the auth middleware from `GET /api/trips` and `GET /api/trips/:id` in `server/src/routes/trips.ts` so logged-out visitors can browse; keep `POST /`, `POST /:id/interest`, `GET /:id/interests` auth-gated. Update `server/src/routes/trips.test.ts` to assert both GETs are reachable without a token. (Fixes Landing showing "No trips posted yet" to visitors.)
 - [x] **4.2 `createdById` filter** — in `tripController.getTrips`, read `req.query.createdById` and add `if (createdById) where['createdById'] = createdById as string;`. Then remove the client-side re-filter workaround in `client/src/pages/PublicProfile.tsx`. Add a controller test for the filter.
 - [x] **4.3 AvailabilityCalendar sync** — in `client/src/components/AvailabilityCalendar.tsx` add `useEffect(() => setSelected(new Set(value)), [value])` so it re-syncs when the parent `value` prop changes. Add a test for prop-change re-render.
-- [ ] **4.4 Chat list staleness** — refetch conversations after sending a message in `client/src/pages/Chat.tsx`. Mark done-by-5a if Socket.IO lands first.
+- [x] **4.4 Chat list staleness** (done-by-5a: Socket.IO replaces polling) — refetch conversations after sending a message in `client/src/pages/Chat.tsx`. Mark done-by-5a if Socket.IO lands first.
 
 ### Phase 5 — PRD non-goal features (full scope)
 
 > Write and commit the code + tests regardless. Where live operation needs a secret, note it and mark only that live-verification step `BLOCKED:` — the code/tests are still expected. Add every new env var to `.env.example`.
 
-- [ ] **5a Real-time chat (Socket.IO)** — supersedes 4.4.
+- [x] **5a Real-time chat (Socket.IO)** — supersedes 4.4.
   - Server: add `socket.io`; in `server/src/index.ts` wrap Express in `http.createServer` and attach `io`; authenticate the handshake with `jwt.verify` (reuse logic from `middleware/auth.ts`); join a per-user room. Emit `message:new` from `messageController.sendMessage`.
   - Client: add `socket.io-client`; a `useSocket` hook (reuse the JWT from `services/auth.ts`); in `Chat.tsx` subscribe to `message:new` to append messages and update the sidebar live.
   - Tests: server emits on send (mock `io`); client hook subscribe/cleanup.

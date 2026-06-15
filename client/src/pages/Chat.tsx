@@ -1,17 +1,19 @@
-import { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getMessages, sendMessage, getUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../hooks/useSocket';
 import type { Message, User } from '../types';
 import ChatBubble from '../components/ChatBubble';
 import { getInitials } from '../utils/helpers';
-
-const POLL_INTERVAL = 5000;
 
 interface ConversationSummary {
   partner: User;
   latestMessage: Message;
 }
+
+const byNewest = (a: ConversationSummary, b: ConversationSummary): number =>
+  new Date(b.latestMessage.createdAt).getTime() - new Date(a.latestMessage.createdAt).getTime();
 
 export default function Chat() {
   const { userId } = useParams<{ userId?: string }>();
@@ -73,9 +75,41 @@ export default function Chat() {
     };
 
     void fetchMessages();
-    const interval = setInterval(() => void fetchMessages(), POLL_INTERVAL);
-    return () => clearInterval(interval);
   }, [userId]);
+
+  // Real-time delivery: append to the open thread (deduped) and keep the
+  // sidebar's latest-message/order fresh as messages arrive.
+  const handleIncoming = useCallback(
+    (msg: Message) => {
+      if (!user) return;
+      const partnerId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
+
+      if (userId && partnerId === userId) {
+        setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+      }
+
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c.partner.id === partnerId);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], latestMessage: msg };
+          return updated.sort(byNewest);
+        }
+        // New partner we haven't loaded yet — fetch their profile, then insert.
+        void getUser(partnerId).then((partner) => {
+          setConversations((cur) =>
+            cur.some((c) => c.partner.id === partnerId)
+              ? cur
+              : [...cur, { partner, latestMessage: msg }].sort(byNewest),
+          );
+        });
+        return prev;
+      });
+    },
+    [user, userId],
+  );
+
+  useSocket(handleIncoming);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
