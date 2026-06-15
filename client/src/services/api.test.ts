@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as apiService from './api';
 
 vi.mock('../api/client');
 import apiClient from '../api/client';
 
 describe('services/api', () => {
-  const mockGet = vi.fn(() => Promise.resolve({ data: { results: [], meta: {} } }));
+  const mockGet = vi.fn(() => Promise.resolve({ data: { results: [] as unknown[], meta: {} } }));
   const mockPost = vi.fn(() => Promise.resolve({ data: {} }));
 
   beforeEach(() => {

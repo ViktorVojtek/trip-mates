@@ -33,7 +33,7 @@ describe('auth middleware', () => {
   it('returns 401 when Authorization header is missing', () => {
     const req = makeReq();
     const res = makeRes();
-    const next = vi.fn() as NextFunction;
+    const next = vi.fn() as unknown as NextFunction;
 
     auth(req, res, next);
 
@@ -45,7 +45,7 @@ describe('auth middleware', () => {
   it('returns 401 when header does not start with Bearer', () => {
     const req = makeReq('Token abc123');
     const res = makeRes();
-    const next = vi.fn() as NextFunction;
+    const next = vi.fn() as unknown as NextFunction;
 
     auth(req, res, next);
 
@@ -58,7 +58,7 @@ describe('auth middleware', () => {
 
     const req = makeReq('Bearer valid-token');
     const res = makeRes();
-    const next = vi.fn() as NextFunction;
+    const next = vi.fn() as unknown as NextFunction;
 
     auth(req, res, next);
 
@@ -73,7 +73,7 @@ describe('auth middleware', () => {
 
     const req = makeReq('Bearer bad-token');
     const res = makeRes();
-    const next = vi.fn() as NextFunction;
+    const next = vi.fn() as unknown as NextFunction;
 
     auth(req, res, next);
 
@@ -91,7 +91,7 @@ describe('auth middleware', () => {
 
     const req = makeReq('Bearer expired-token');
     const res = makeRes();
-    const next = vi.fn() as NextFunction;
+    const next = vi.fn() as unknown as NextFunction;
 
     auth(req, res, next);
 

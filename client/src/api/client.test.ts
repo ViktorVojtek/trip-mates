@@ -35,7 +35,7 @@ describe('api/client', () => {
   it('adds Authorization header when token exists in localStorage', () => {
     localStorage.setItem('token', 'test-token');
     const config = { headers: {} } as any;
-    const interceptor = apiClient.interceptors.request.handlers[0].fulfilled;
+    const interceptor = (apiClient.interceptors.request as unknown as { handlers: { fulfilled: (c: unknown) => unknown }[] }).handlers[0].fulfilled;
     interceptor(config);
     expect(config.headers.Authorization).toBe('Bearer test-token');
     localStorage.removeItem('token');
@@ -44,7 +44,7 @@ describe('api/client', () => {
   it('does not add Authorization header when no token', () => {
     localStorage.removeItem('token');
     const config = { headers: {} } as any;
-    const interceptor = apiClient.interceptors.request.handlers[0].fulfilled;
+    const interceptor = (apiClient.interceptors.request as unknown as { handlers: { fulfilled: (c: unknown) => unknown }[] }).handlers[0].fulfilled;
     interceptor(config);
     expect(config.headers.Authorization).toBeUndefined();
   });

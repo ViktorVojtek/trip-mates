@@ -74,7 +74,7 @@ describe('services/auth', () => {
   it('updateProfile calls correct endpoint with data', async () => {
     const mockData = { id: '1' };
     vi.mocked(apiClient.put).mockResolvedValueOnce({ data: mockData });
-    await authService.updateProfile({ name: 'Updated' });
-    expect(apiClient.put).toHaveBeenCalledWith('/auth/profile', { name: 'Updated' });
+    await authService.updateProfile({ name: 'Updated', familySize: 2 });
+    expect(apiClient.put).toHaveBeenCalledWith('/auth/profile', { name: 'Updated', familySize: 2 });
   });
 });
