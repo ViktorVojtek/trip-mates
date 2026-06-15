@@ -13,10 +13,18 @@ vi.mock('../config/db.js', () => ({
       upsert: vi.fn(),
       findMany: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
+vi.mock('../utils/mailer.js', () => ({
+  notifyTripInterest: vi.fn().mockResolvedValue(true),
+}));
+
 import prisma from '../config/db.js';
+import { notifyTripInterest } from '../utils/mailer.js';
 import {
   getTrips,
   getTripById,
@@ -35,6 +43,9 @@ const prismaMock = prisma as unknown as {
   tripInterest: {
     upsert: ReturnType<typeof vi.fn>;
     findMany: ReturnType<typeof vi.fn>;
+  };
+  user: {
+    findUnique: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -228,6 +239,45 @@ describe('expressInterest()', () => {
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'pending', tripId: 't1' }));
+  });
+
+  it('emails the trip owner when the trip has an owner', async () => {
+    prismaMock.trip.findUnique.mockResolvedValue({
+      id: 't1',
+      title: 'Beach Trip',
+      createdBy: { email: 'owner@b.com', name: 'Olivia' },
+    });
+    prismaMock.tripInterest.upsert.mockResolvedValue({
+      id: 'i1', tripId: 't1', userId: 'u1', createdAt: new Date(),
+    });
+    prismaMock.user.findUnique.mockResolvedValue({ name: 'Ivan' });
+
+    const req = makeReq({ params: { id: 't1' } });
+    const res = makeRes();
+    await expressInterest(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(notifyTripInterest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ownerEmail: 'owner@b.com',
+        tripTitle: 'Beach Trip',
+        interestedName: 'Ivan',
+      })
+    );
+  });
+
+  it('does not notify when the trip has no owner email', async () => {
+    prismaMock.trip.findUnique.mockResolvedValue({ id: 't1' });
+    prismaMock.tripInterest.upsert.mockResolvedValue({
+      id: 'i1', tripId: 't1', userId: 'u1', createdAt: new Date(),
+    });
+
+    const req = makeReq({ params: { id: 't1' } });
+    const res = makeRes();
+    await expressInterest(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(notifyTripInterest).not.toHaveBeenCalled();
   });
 
   it('calls next(err) on prisma error', async () => {

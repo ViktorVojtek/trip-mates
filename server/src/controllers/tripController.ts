@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import prisma from '../config/db.js';
+import { notifyTripInterest } from '../utils/mailer.js';
 
 const tripSelect = {
   id: true,
@@ -118,7 +119,10 @@ export const expressInterest = async (
     const tripId = req.params.id;
     const userId = req.userId!;
 
-    const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true } });
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      select: { id: true, title: true, createdBy: { select: { email: true, name: true } } },
+    });
     if (!trip) {
       res.status(404).json({ message: 'Trip not found' });
       return;
@@ -130,6 +134,25 @@ export const expressInterest = async (
       update: {},
       select: { id: true, tripId: true, userId: true, createdAt: true },
     });
+
+    // Best-effort owner notification — must never block or fail the response.
+    try {
+      const owner = (trip as { createdBy?: { email: string; name: string } }).createdBy;
+      if (owner?.email) {
+        const interestedUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        });
+        await notifyTripInterest({
+          ownerEmail: owner.email,
+          ownerName: owner.name,
+          tripTitle: (trip as { title?: string }).title ?? 'your trip',
+          interestedName: interestedUser?.name ?? 'A traveler',
+        });
+      }
+    } catch {
+      // ignore notification errors
+    }
 
     res.status(201).json({ ...interest, status: 'pending' });
   } catch (err) {
