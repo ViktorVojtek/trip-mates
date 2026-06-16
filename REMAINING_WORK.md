@@ -63,7 +63,7 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 - [x] **7.6 Cloud avatar storage (code + mocked tests)** — add a storage adapter so avatars upload to **Cloudinary** (default; S3 as alternative) when its keys are set, falling back to the existing local-disk multer path otherwise. `User.profilePicture` stores the returned URL. Add the keys to `.env.example`. Mock the SDK in tests. (Local disk does not survive ephemeral hosting — this is required for real deploys.)
 - [ ] `BLOCKED: needs Cloudinary (or S3) credentials` — live upload-to-bucket verification for 7.6 (code + mocked tests still expected above).
 - [x] **7.7 Containerization** — multi-stage `server/Dockerfile` (build → migrate + `node dist/index.js`), `client/Dockerfile` (vite build → nginx static serve with SPA fallback), `.dockerignore` files, `client/nginx.conf`, and a root `docker-compose.yml` wiring server + client + Postgres (healthcheck-gated). `docker compose config` validates. NOTE: live image build not run here — the Docker daemon/colima won't start in this environment; run `docker compose build` where Docker is available to verify.
-- [ ] **7.8 CI workflow** — add `.github/workflows/ci.yml` running install + `tsc --noEmit` + tests + build for both packages on push/PR. Note: this only runs once the repo has a GitHub remote (currently none; pushing is prevented by the `pre-push` hook).
+- [x] **7.8 CI workflow** — add `.github/workflows/ci.yml` running install + `tsc --noEmit` + tests + build for both packages on push/PR. Note: this only runs once the repo has a GitHub remote (currently none; pushing is prevented by the `pre-push` hook).
 
 ---
 
