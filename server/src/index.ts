@@ -2,7 +2,9 @@ import 'dotenv/config';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import prisma from './config/db.js';
 import { createApp, resolveCorsOrigin } from './app.js';
+import { gracefulShutdown } from './shutdown.js';
 
 const app = createApp();
 const PORT = process.env.PORT ?? 5000;
@@ -37,3 +39,7 @@ app.set('io', io);
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const shutdown = gracefulShutdown({ httpServer, io, prisma });
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));

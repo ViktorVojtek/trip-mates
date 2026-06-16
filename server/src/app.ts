@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import morgan from 'morgan';
 import { uploadsDir } from './middleware/upload.js';
 import authRoutes from './routes/auth.js';
 import tripRoutes from './routes/trips.js';
@@ -24,6 +25,7 @@ export function createApp(): Express {
 
   app.use(helmet());
   app.use(cors({ origin: resolveCorsOrigin() }));
+  app.use(morgan('dev', { skip: () => process.env.NODE_ENV === 'test' }));
   app.use(express.json());
 
   // Serve uploaded avatars.
