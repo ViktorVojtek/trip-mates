@@ -95,6 +95,16 @@ describe('POST /api/messages', () => {
     expect(res.status).toBe(401);
   });
 
+  it('rejects a message with no content (400)', async () => {
+    const res = await request(app)
+      .post('/api/messages')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ receiverId: 'u2' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
   it('sends a message and returns 201', async () => {
     prismaMock.message.create.mockResolvedValue(msgRow);
 

@@ -63,7 +63,7 @@ describe('POST /api/auth/register', () => {
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'a@b.com', password: 'pw123', name: 'Alice' });
+      .send({ email: 'a@b.com', password: 'pw1234', name: 'Alice' });
 
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ message: 'User already exists' });
@@ -78,7 +78,7 @@ describe('POST /api/auth/register', () => {
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'a@b.com', password: 'pw123', name: 'Alice' });
+      .send({ email: 'a@b.com', password: 'pw1234', name: 'Alice' });
 
     expect(res.status).toBe(201);
     expect(res.body.token).toBe('tok');
@@ -122,6 +122,28 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(200);
     expect(res.body.token).toBe('tok');
     expect(res.body.user.email).toBe('a@b.com');
+  });
+});
+
+describe('request validation', () => {
+  it('rejects register with an invalid email (400)', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'not-an-email', password: 'pw1234', name: 'Alice' });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
+  it('rejects register with a too-short password (400)', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'a@b.com', password: 'short', name: 'Alice' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects login with a missing email (400)', async () => {
+    const res = await request(app).post('/api/auth/login').send({ password: 'pw' });
+    expect(res.status).toBe(400);
   });
 });
 
@@ -183,6 +205,15 @@ describe('PUT /api/auth/profile', () => {
   it('returns 401 when no token is provided', async () => {
     const res = await request(app).put('/api/auth/profile').send({ name: 'Bob' });
     expect(res.status).toBe(401);
+  });
+
+  it('rejects an invalid familySize (400)', async () => {
+    vi.mocked(jwt.verify).mockReturnValue({ userId: 'u1' } as never);
+    const res = await request(app)
+      .put('/api/auth/profile')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ familySize: 0 });
+    expect(res.status).toBe(400);
   });
 
   it('returns 200 with updated profile on success', async () => {

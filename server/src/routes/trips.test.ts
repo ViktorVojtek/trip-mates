@@ -123,6 +123,16 @@ describe('POST /api/trips', () => {
     expect(res.status).toBe(401);
   });
 
+  it('rejects an invalid body with 400', async () => {
+    const res = await request(app)
+      .post('/api/trips')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ description: 'missing title and others' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
   it('creates and returns the trip with 201', async () => {
     prismaMock.trip.create.mockResolvedValue(tripRow);
 
