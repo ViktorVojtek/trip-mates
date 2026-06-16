@@ -1,6 +1,6 @@
 # Trip Mates — Remaining Work
 
-_Last verified: 2026-06-15. Always check actual files before acting on this list — verify before you trust._
+_Last verified: 2026-06-16. Always check actual files before acting on this list — verify before you trust._
 
 This list mirrors the approved completion plan. The autonomous night runner (`night-run.sh`) works through the unchecked checklist items below; items marked `BLOCKED:` are skipped.
 
@@ -15,6 +15,7 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 - **Server tests** — 92 passing (12 files).
 - **TypeScript** — `tsc --noEmit` clean in both packages ✅. `npm run build` succeeds in both.
 - **Live smoke (2026-06-15)** — verified against real DB: public trip listing without auth, public trip detail, budget serialized as number, avatar upload + non-image rejection, Socket.IO auth handshake + real-time `message:new` delivery.
+- **v1 (Phases 4–6)** complete. **Phase 7 (production readiness)** newly drafted below and pending — hardening for real deployment, not new features.
 
 ### Invariants (from CLAUDE.md — never break)
 `postcss.config.js` not `.ts` · server imports use `.js` extension (NodeNext) · no `@hookform/resolvers` (use `client/src/utils/zodResolver.ts`) · always `Number(trip.budget)` before JSON.
@@ -49,6 +50,20 @@ This list mirrors the approved completion plan. The autonomous night runner (`ni
 - [x] **6.1** `tsc --noEmit` clean in both packages; `npm test` green in both (server 92, client 167); `npm run build` succeeds in both.
 - [x] **6.2** Live smoke against the real DB: register/create-trip, public trip listing + detail without auth, avatar upload (+ non-image 400), Socket.IO auth + real-time `message:new`. (Live email/Google not exercised — credential-gated.)
 - [x] **6.3** Reconciled this doc — Phases 4–6 complete; only the two credential-gated live-verification items remain (SMTP, Google).
+
+### Phase 7 — Production readiness (new scope, beyond v1)
+
+> Newly scoped after v1 features completed (2026-06-16). These harden the app for real deployment rather than adding features. Live/deploy steps that need credentials or a hosting decision are marked `BLOCKED:` — the code + tests are still expected. Default to a single sensible choice where a decision is open (noted inline) so the runner is not blocked; the user can override.
+
+- [ ] **7.1 Server-side request validation** — add a `validate(schema)` middleware (`server/src/middleware/validate.ts`) backed by Zod and apply it to `POST /auth/register`, `/auth/login`, `/auth/google`, `POST /trips`, `POST /messages`, and `PUT /auth/profile`. Return 400 with field errors on invalid bodies (server currently trusts request bodies; Zod is client-only today). Tests: one accept + one reject per route.
+- [ ] **7.2 Security headers + CORS lockdown** — add `helmet`; restrict Express `cors()` and the Socket.IO `cors.origin` to `CLIENT_ORIGIN` (in `server/src/index.ts`), refusing `*` when `NODE_ENV === 'production'`. Test that a disallowed origin is rejected.
+- [ ] **7.3 Auth rate limiting** — add `express-rate-limit` to the auth router for `login`/`register`/`google` (e.g. 10 req/min/IP). Test that exceeding the limit returns 429.
+- [ ] **7.4 Production-safe error handling** — update `server/src/middleware/errorHandler.ts` to log the full error server-side but return a generic message (no stack/internal details) when `NODE_ENV === 'production'`, keeping detailed output in dev. Extend `errorHandler.test.ts`.
+- [ ] **7.5 Request logging + graceful shutdown** — add HTTP request logging (`morgan`, skipped under test) and close the HTTP server, Socket.IO, and Prisma on `SIGTERM`/`SIGINT` in `server/src/index.ts`.
+- [ ] **7.6 Cloud avatar storage (code + mocked tests)** — add a storage adapter so avatars upload to **Cloudinary** (default; S3 as alternative) when its keys are set, falling back to the existing local-disk multer path otherwise. `User.profilePicture` stores the returned URL. Add the keys to `.env.example`. Mock the SDK in tests. (Local disk does not survive ephemeral hosting — this is required for real deploys.)
+- [ ] `BLOCKED: needs Cloudinary (or S3) credentials` — live upload-to-bucket verification for 7.6 (code + mocked tests still expected above).
+- [ ] **7.7 Containerization** — add a multi-stage `server/Dockerfile` (build → `node dist/index.js`), a `client/Dockerfile` (vite build → static serve), `.dockerignore` files, and a root `docker-compose.yml` wiring server + client + Postgres. Verify both images build.
+- [ ] **7.8 CI workflow** — add `.github/workflows/ci.yml` running install + `tsc --noEmit` + tests + build for both packages on push/PR. Note: this only runs once the repo has a GitHub remote (currently none; pushing is prevented by the `pre-push` hook).
 
 ---
 
