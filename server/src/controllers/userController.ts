@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import prisma from '../config/db.js';
+import { resolveAvatarUrl } from '../utils/avatarStorage.js';
 
 export const getUserProfile = async (
   req: Request,
@@ -44,7 +45,10 @@ export const uploadAvatar = async (
       return;
     }
 
-    const profilePicture = `/uploads/${req.file.filename}`;
+    const profilePicture = await resolveAvatarUrl({
+      path: req.file.path,
+      filename: req.file.filename,
+    });
     const user = await prisma.user.update({
       where: { id: req.userId! },
       data: { profilePicture },
