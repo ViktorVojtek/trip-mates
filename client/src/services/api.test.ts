@@ -5,11 +5,14 @@ vi.mock('../api/client');
 import apiClient from '../api/client';
 
 describe('services/api', () => {
-  const mockGet = vi.fn(() => Promise.resolve({ data: { results: [] as unknown[], meta: {} } }));
-  const mockPost = vi.fn(() => Promise.resolve({ data: {} }));
+  const mockGet = vi.fn();
+  const mockPost = vi.fn();
 
   beforeEach(() => {
     vi.resetAllMocks();
+    // Re-apply after reset — resetAllMocks strips the implementation.
+    mockGet.mockImplementation(() => Promise.resolve({ data: { results: [] as unknown[], meta: {} } }));
+    mockPost.mockImplementation(() => Promise.resolve({ data: {} }));
     vi.mocked(apiClient).get = mockGet as never;
     vi.mocked(apiClient).post = mockPost as never;
   });
